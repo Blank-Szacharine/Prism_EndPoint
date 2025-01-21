@@ -36,4 +36,6 @@ public partial class QmsProgram
     public string? Status { get; set; }
 
     public virtual ICollection<FrequencyAudit> FrequencyAudits { get; set; } = new List<FrequencyAudit>();
+
+    public virtual ICollection<QmsPlan> QmsPlans { get; set; } = new List<QmsPlan>();
 }

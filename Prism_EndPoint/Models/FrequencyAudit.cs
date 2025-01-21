@@ -20,4 +20,6 @@ public partial class FrequencyAudit
     public virtual ICollection<FrequencyMonth> FrequencyMonths { get; set; } = new List<FrequencyMonth>();
 
     public virtual QmsProgram? Program { get; set; }
+
+    public virtual ICollection<QmsPlan> QmsPlans { get; set; } = new List<QmsPlan>();
 }

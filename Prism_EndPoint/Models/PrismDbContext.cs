@@ -23,9 +23,15 @@ public partial class PrismDbContext : DbContext
 
     public virtual DbSet<PrismCredential> PrismCredentials { get; set; }
 
+    public virtual DbSet<QmsPlan> QmsPlans { get; set; }
+
+    public virtual DbSet<QmsPlanAudit> QmsPlanAudits { get; set; }
+
     public virtual DbSet<QmsProgram> QmsPrograms { get; set; }
 
     public virtual DbSet<Qmsprocess> Qmsprocesses { get; set; }
+
+    public virtual DbSet<QmssubProcess> QmssubProcesses { get; set; }
 
     public virtual DbSet<Qmsteam> Qmsteams { get; set; }
 
@@ -99,6 +105,57 @@ public partial class PrismDbContext : DbContext
                 .HasColumnName("ViceQMSLEADER");
         });
 
+        modelBuilder.Entity<QmsPlan>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsPlan__3214EC074AB81AF0");
+
+            entity.ToTable("QmsPlan");
+
+            entity.Property(e => e.Approve).HasMaxLength(50);
+            entity.Property(e => e.AuditMemo).HasMaxLength(255);
+            entity.Property(e => e.AuditObj).HasMaxLength(255);
+            entity.Property(e => e.AuditScope).HasMaxLength(255);
+            entity.Property(e => e.DocumentNumber).HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(50);
+
+            entity.HasOne(d => d.Frequency).WithMany(p => p.QmsPlans)
+                .HasForeignKey(d => d.FrequencyId)
+                .HasConstraintName("FK_QmsPlan_FrequencyId");
+
+            entity.HasOne(d => d.Process).WithMany(p => p.QmsPlans)
+                .HasForeignKey(d => d.ProcessId)
+                .HasConstraintName("FK_QmsPlan_ProcessId");
+
+            entity.HasOne(d => d.Program).WithMany(p => p.QmsPlans)
+                .HasForeignKey(d => d.ProgramId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__QmsPlan__Program__4CA06362");
+        });
+
+        modelBuilder.Entity<QmsPlanAudit>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsPlanA__3214EC075535A963");
+
+            entity.ToTable("QmsPlanAudit");
+
+            entity.Property(e => e.AuditCriteria).HasMaxLength(255);
+            entity.Property(e => e.ProcessOwner).HasMaxLength(255);
+            entity.Property(e => e.TeamId).HasColumnName("teamId");
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.QmsPlanAudits)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__QmsPlanAu__PlanI__571DF1D5");
+
+            entity.HasOne(d => d.SubProcess).WithMany(p => p.QmsPlanAudits)
+                .HasForeignKey(d => d.SubProcessId)
+                .HasConstraintName("FK__QmsPlanAu__SubPr__5812160E");
+
+            entity.HasOne(d => d.Team).WithMany(p => p.QmsPlanAudits)
+                .HasForeignKey(d => d.TeamId)
+                .HasConstraintName("FK__QmsPlanAu__teamI__59063A47");
+        });
+
         modelBuilder.Entity<QmsProgram>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__QmsProgr__3214EC0703317E3D");
@@ -130,6 +187,20 @@ public partial class PrismDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__QMSproce__3214EC0707F6335A");
 
             entity.ToTable("QMSprocess");
+        });
+
+        modelBuilder.Entity<QmssubProcess>(entity =>
+        {
+            entity.HasKey(e => e.SubProcessId).HasName("PK__QMSsubPr__F054A8AC45F365D3");
+
+            entity.ToTable("QMSsubProcess");
+
+            entity.Property(e => e.SubProcessName).HasMaxLength(255);
+
+            entity.HasOne(d => d.Process).WithMany(p => p.QmssubProcesses)
+                .HasForeignKey(d => d.ProcessId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_QMSsubProcess_QMSprocess");
         });
 
         modelBuilder.Entity<Qmsteam>(entity =>

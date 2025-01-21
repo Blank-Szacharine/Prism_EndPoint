@@ -11,5 +11,7 @@ public partial class Qmsteam
 
     public virtual ICollection<FrequencyAudit> FrequencyAudits { get; set; } = new List<FrequencyAudit>();
 
+    public virtual ICollection<QmsPlanAudit> QmsPlanAudits { get; set; } = new List<QmsPlanAudit>();
+
     public virtual ICollection<QmsteamMember> QmsteamMembers { get; set; } = new List<QmsteamMember>();
 }

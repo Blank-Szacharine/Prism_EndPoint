@@ -9,6 +9,13 @@
         public string title { get; set; } = null!;
 
         public string description { get; set; } = null!;
+        public List<subProcess> SubProcess { get; set; }
+        public class subProcess
+        {
+
+            public string? ProcessTitle { get; set; }
+
+        }
 
     }
 }

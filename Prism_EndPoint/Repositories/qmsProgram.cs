@@ -51,7 +51,16 @@ namespace Prism_EndPoint.Repositories
             var lastId = _QmsContext.QmsPrograms.OrderByDescending(p => p.Id).FirstOrDefault();
 
             var currentYear = DateTime.Now.Year;
-            var code = $"QMS-{currentYear}-{lastId.Id + 1}";
+            var idStart = 0;
+            if (lastId == null)
+            {
+                idStart = 1;
+            }
+            else
+            {
+                idStart = lastId.Id;
+            }
+            var code = $"QMS-{currentYear}-{idStart + 1}";
             var newProgram = new QmsProgram
             {
                 Code = code,
@@ -180,22 +189,45 @@ namespace Prism_EndPoint.Repositories
 
         public async Task newProcess(NewProcess process)
         {
-            var newProcess = new Qmsprocess
+            try
             {
-                ProcessTitle = process.title,
-                ProcessDescription = process.description,
-            };
-            _QmsContext.Qmsprocesses.Update(newProcess);
-            await _QmsContext.SaveChangesAsync();
+                var newProcess = new Qmsprocess
+                {
+                    ProcessTitle = process.title,
+                    ProcessDescription = process.description,
+                };
+                _QmsContext.Qmsprocesses.Add(newProcess);
+                await _QmsContext.SaveChangesAsync();
 
-            var newDivisionProcess = new DivisionProcess
+                foreach (var subProcess in process.SubProcess)
+                {
+                    var NewsubProcess = new QmssubProcess
+                    {
+                        ProcessId = newProcess.Id,
+                        SubProcessName = subProcess.ProcessTitle
+                    };
+                    _QmsContext.QmssubProcesses.Add(NewsubProcess);
+                    await _QmsContext.SaveChangesAsync();
+
+                }
+
+                var newDivisionProcess = new DivisionProcess
+                {
+                    ProcessOwnerId = process.owner,
+                    DivisionId = process.division,
+                    ProcessId = newProcess.Id
+                };
+                _QmsContext.DivisionProcesses.Add(newDivisionProcess);
+                await _QmsContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
             {
-                ProcessOwnerId = process.owner,
-                DivisionId = process.division,
-                ProcessId = newProcess.Id
-            };
-            _QmsContext.DivisionProcesses.Update(newDivisionProcess);
-            await _QmsContext.SaveChangesAsync();
+                Console.WriteLine(ex.Message);
+
+
+                throw;
+            }
+            
 
         }
 
