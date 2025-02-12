@@ -10,6 +10,8 @@ namespace Prism_EndPoint.Entities
 
         public int? PlanId { get; set; }
 
+        public int? checklist {  get; set; }
+
         public int? divId { get; set; }
 
         public string? AuditObj { get; set; }
@@ -29,6 +31,8 @@ namespace Prism_EndPoint.Entities
             public int? teamId { get; set; }
 
         }
+       
+
         public List<PlanAudit> PlanAudits { get; set; }
         public class PlanAudit
         {
@@ -54,6 +58,12 @@ namespace Prism_EndPoint.Entities
             public TimeOnly? TimeFrom { get; set; }
 
             public TimeOnly? TimeTo { get; set; }
+            public List<auditClauses> auditClause { get; set; } = null!;
+            public class auditClauses
+            {
+                public string subSclauses { get; set; }
+
+            }
 
         }
 

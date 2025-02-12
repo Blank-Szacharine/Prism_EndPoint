@@ -25,7 +25,15 @@ public partial class QmsPlanAudit
 
     public TimeOnly? TimeTo { get; set; }
 
+    public int? SubClauseId { get; set; }
+
     public virtual QmsPlan Plan { get; set; } = null!;
+
+    public virtual ICollection<QmsCheckListAudit> QmsCheckListAudits { get; set; } = new List<QmsCheckListAudit>();
+
+    public virtual ICollection<QmsPlanAuditClause> QmsPlanAuditClauses { get; set; } = new List<QmsPlanAuditClause>();
+
+    public virtual QmsSubClause? SubClause { get; set; }
 
     public virtual QmssubProcess? SubProcess { get; set; }
 

@@ -23,11 +23,23 @@ public partial class PrismDbContext : DbContext
 
     public virtual DbSet<PrismCredential> PrismCredentials { get; set; }
 
+    public virtual DbSet<QmsAuditReport> QmsAuditReports { get; set; }
+
+    public virtual DbSet<QmsCheckList> QmsCheckLists { get; set; }
+
+    public virtual DbSet<QmsCheckListAudit> QmsCheckListAudits { get; set; }
+
     public virtual DbSet<QmsPlan> QmsPlans { get; set; }
 
     public virtual DbSet<QmsPlanAudit> QmsPlanAudits { get; set; }
 
+    public virtual DbSet<QmsPlanAuditClause> QmsPlanAuditClauses { get; set; }
+
     public virtual DbSet<QmsProgram> QmsPrograms { get; set; }
+
+    public virtual DbSet<QmsSubClause> QmsSubClauses { get; set; }
+
+    public virtual DbSet<Qmsmanual> Qmsmanuals { get; set; }
 
     public virtual DbSet<Qmsprocess> Qmsprocesses { get; set; }
 
@@ -105,6 +117,60 @@ public partial class PrismDbContext : DbContext
                 .HasColumnName("ViceQMSLEADER");
         });
 
+        modelBuilder.Entity<QmsAuditReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsAudit__3214EC0709A971A2");
+
+            entity.ToTable("QmsAuditReport");
+
+            entity.Property(e => e.Ofi).HasColumnName("OFI");
+            entity.Property(e => e.Pgpidentified).HasColumnName("PGPIdentified");
+
+            entity.HasOne(d => d.Checklist).WithMany(p => p.QmsAuditReports)
+                .HasForeignKey(d => d.ChecklistId)
+                .HasConstraintName("FK_QmsAuditReport_QmsCheckList");
+        });
+
+        modelBuilder.Entity<QmsCheckList>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsCheck__3214EC07778AC167");
+
+            entity.ToTable("QmsCheckList");
+
+            entity.Property(e => e.AcknowledgeBy).HasMaxLength(50);
+            entity.Property(e => e.AcknowledgeDate).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.AuditedBy).HasMaxLength(50);
+            entity.Property(e => e.AuditedDate).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.Status)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Audit).WithMany(p => p.QmsCheckLists)
+                .HasForeignKey(d => d.AuditId)
+                .HasConstraintName("FK__QmsCheckL__Audit__7B5B524B");
+        });
+
+        modelBuilder.Entity<QmsCheckListAudit>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsCheck__3214EC077E37BEF6");
+
+            entity.ToTable("QmsCheckListAudit");
+
+            entity.Property(e => e.ClauseId).HasColumnName("clauseId");
+
+            entity.HasOne(d => d.AuditPlan).WithMany(p => p.QmsCheckListAudits)
+                .HasForeignKey(d => d.AuditPlanId)
+                .HasConstraintName("FK__QmsCheckL__Audit__00200768");
+
+            entity.HasOne(d => d.CheckList).WithMany(p => p.QmsCheckListAudits)
+                .HasForeignKey(d => d.CheckListId)
+                .HasConstraintName("FK__QmsCheckL__Check__01142BA1");
+
+            entity.HasOne(d => d.Clause).WithMany(p => p.QmsCheckListAudits)
+                .HasForeignKey(d => d.ClauseId)
+                .HasConstraintName("FK_QmsCheckListAudit_QmsPlanAudit");
+        });
+
         modelBuilder.Entity<QmsPlan>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__QmsPlan__3214EC074AB81AF0");
@@ -112,8 +178,8 @@ public partial class PrismDbContext : DbContext
             entity.ToTable("QmsPlan");
 
             entity.Property(e => e.Approve).HasMaxLength(50);
-            entity.Property(e => e.AuditMemo).HasMaxLength(255);
-            entity.Property(e => e.AuditObj).HasMaxLength(255);
+            entity.Property(e => e.AuditMemo).IsUnicode(false);
+            entity.Property(e => e.AuditObj).IsUnicode(false);
             entity.Property(e => e.AuditScope).HasMaxLength(255);
             entity.Property(e => e.DocumentNumber).HasMaxLength(50);
             entity.Property(e => e.Status).HasMaxLength(50);
@@ -138,7 +204,7 @@ public partial class PrismDbContext : DbContext
 
             entity.ToTable("QmsPlanAudit");
 
-            entity.Property(e => e.AuditCriteria).HasMaxLength(255);
+            entity.Property(e => e.AuditCriteria).IsUnicode(false);
             entity.Property(e => e.ProcessOwner).HasMaxLength(255);
             entity.Property(e => e.TeamId).HasColumnName("teamId");
 
@@ -147,6 +213,10 @@ public partial class PrismDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__QmsPlanAu__PlanI__571DF1D5");
 
+            entity.HasOne(d => d.SubClause).WithMany(p => p.QmsPlanAudits)
+                .HasForeignKey(d => d.SubClauseId)
+                .HasConstraintName("FK_SubClauseId_Frequency");
+
             entity.HasOne(d => d.SubProcess).WithMany(p => p.QmsPlanAudits)
                 .HasForeignKey(d => d.SubProcessId)
                 .HasConstraintName("FK__QmsPlanAu__SubPr__5812160E");
@@ -154,6 +224,23 @@ public partial class PrismDbContext : DbContext
             entity.HasOne(d => d.Team).WithMany(p => p.QmsPlanAudits)
                 .HasForeignKey(d => d.TeamId)
                 .HasConstraintName("FK__QmsPlanAu__teamI__59063A47");
+        });
+
+        modelBuilder.Entity<QmsPlanAuditClause>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsPlanA__3214EC0768487DD7");
+
+            entity.ToTable("QmsPlanAuditClause");
+
+            entity.Property(e => e.PlanAuditId).HasColumnName("planAuditId");
+            entity.Property(e => e.SubClause)
+                .HasMaxLength(10)
+                .HasColumnName("subClause");
+
+            entity.HasOne(d => d.PlanAudit).WithMany(p => p.QmsPlanAuditClauses)
+                .HasForeignKey(d => d.PlanAuditId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__QmsPlanAu__planA__6A30C649");
         });
 
         modelBuilder.Entity<QmsProgram>(entity =>
@@ -180,6 +267,33 @@ public partial class PrismDbContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<QmsSubClause>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QmsSubCl__3214EC07628FA481");
+
+            entity.ToTable("QmsSubClause");
+
+            entity.Property(e => e.ClauseTitle).HasColumnName("Clause Title");
+            entity.Property(e => e.NewColumn)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.SubTitle).HasMaxLength(255);
+
+            entity.HasOne(d => d.Clause).WithMany(p => p.QmsSubClauses)
+                .HasForeignKey(d => d.ClauseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_QmsSubClause_Clause");
+        });
+
+        modelBuilder.Entity<Qmsmanual>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__QMSManua__3214EC075EBF139D");
+
+            entity.ToTable("QMSManual");
+
+            entity.Property(e => e.ClauseTitle).HasColumnName("Clause Title");
         });
 
         modelBuilder.Entity<Qmsprocess>(entity =>
@@ -209,7 +323,9 @@ public partial class PrismDbContext : DbContext
 
             entity.ToTable("QMSTeam");
 
-            entity.Property(e => e.TeamLeader).HasMaxLength(5);
+            entity.Property(e => e.TeamLeader)
+                .HasMaxLength(255)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<QmsteamMember>(entity =>
@@ -218,7 +334,7 @@ public partial class PrismDbContext : DbContext
 
             entity.ToTable("QMSTeamMember");
 
-            entity.Property(e => e.Member).HasMaxLength(5);
+            entity.Property(e => e.Member).HasMaxLength(50);
 
             entity.HasOne(d => d.Team).WithMany(p => p.QmsteamMembers)
                 .HasForeignKey(d => d.TeamId)

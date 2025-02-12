@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<PrismDbContext>(); 
 builder.Services.AddTransient<IqmsProgram, qmsProgram>();
 builder.Services.AddTransient<IqmsPlan, qmsPlan>();
+builder.Services.AddTransient<IqmsChecklist, qmsChecklist>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",

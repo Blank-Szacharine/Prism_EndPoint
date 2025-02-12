@@ -35,5 +35,7 @@ public partial class QmsPlan
 
     public virtual QmsProgram Program { get; set; } = null!;
 
+    public virtual ICollection<QmsCheckList> QmsCheckLists { get; set; } = new List<QmsCheckList>();
+
     public virtual ICollection<QmsPlanAudit> QmsPlanAudits { get; set; } = new List<QmsPlanAudit>();
 }
