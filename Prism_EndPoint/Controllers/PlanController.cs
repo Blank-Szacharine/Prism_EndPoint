@@ -177,5 +177,21 @@ namespace Prism_EndPoint.Controllers
             }
         }
 
+        [HttpPut("returnPlan/{planId},{notes}", Name = "returnPlan")]
+        public async Task<IActionResult> returnPlan(int planId, string notes)
+        {
+
+            try
+            {
+                await _planrepository.returnPlan(planId,notes);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error updating the Data", ex);
+            }
+        }
+
+
     }
 }

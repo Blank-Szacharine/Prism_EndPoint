@@ -29,6 +29,18 @@ public partial class QmsPlan
 
     public int? FrequencyId { get; set; }
 
+    public string? Notes { get; set; }
+
+    public string? NotesBy { get; set; }
+
+    public DateTime? CreateAt { get; set; }
+
+    public DateOnly? ApprovedDateTl { get; set; }
+
+    public DateOnly? ApprovedDateIqa { get; set; }
+
+    public DateOnly? ApprovedDateQms { get; set; }
+
     public virtual FrequencyAudit? Frequency { get; set; }
 
     public virtual Qmsprocess? Process { get; set; }

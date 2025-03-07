@@ -10,6 +10,7 @@ namespace Prism_EndPoint.Entities
 
         public string? auditTitle { get; set; }
         public string? AuditedBy { get; set; }
+
         public int? DivisionId { get; set; }
 
         public string? Status { get; set; }
@@ -20,8 +21,16 @@ namespace Prism_EndPoint.Entities
 
         public DateOnly? AcknowledgeDate { get; set; }
 
-        
+        public DateOnly? ReviewedDate { get; set; }
+        public string? ReviewedBy { get; set; }
 
+        public List<Auditee> auditees { get; set; }
+
+        public class Auditee
+        {
+            public string? member { get; set; }
+
+        }
         public List<auditList> auditLists { get; set; }
         public class auditList
         {
@@ -42,12 +51,15 @@ namespace Prism_EndPoint.Entities
                 public int AuditPlanId { get; set; }
 
                 public string? Questions { get; set; }
+                public string? LookAt { get; set; }
 
                 public string? Documentation { get; set; }
 
                 public string? Evidence { get; set; }
 
                 public string? Findings { get; set; }
+
+                public string? Remarks { get; set; }
 
                 public int? clause { get; set; }
 

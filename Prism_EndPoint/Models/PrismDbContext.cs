@@ -178,10 +178,19 @@ public partial class PrismDbContext : DbContext
             entity.ToTable("QmsPlan");
 
             entity.Property(e => e.Approve).HasMaxLength(50);
+            entity.Property(e => e.ApprovedDateIqa).HasColumnName("approvedDateIQA");
+            entity.Property(e => e.ApprovedDateQms).HasColumnName("approvedDateQMS");
+            entity.Property(e => e.ApprovedDateTl).HasColumnName("approvedDateTL");
             entity.Property(e => e.AuditMemo).IsUnicode(false);
             entity.Property(e => e.AuditObj).IsUnicode(false);
             entity.Property(e => e.AuditScope).HasMaxLength(255);
+            entity.Property(e => e.CreateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("create_at");
             entity.Property(e => e.DocumentNumber).HasMaxLength(50);
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.NotesBy).HasColumnName("notesBy");
             entity.Property(e => e.Status).HasMaxLength(50);
 
             entity.HasOne(d => d.Frequency).WithMany(p => p.QmsPlans)

@@ -18,6 +18,8 @@
 
         public string? QMSleader { get; set; }
 
+        public string? QMSViceleader { get; set; }
+
         public string? QMSauditLead { get; set; }
 
         public string? code { get; set; }

@@ -301,9 +301,22 @@ namespace Prism_EndPoint.Controllers
             try
             {
                 var program = _qmsDB.QmsPrograms.Where(x => x.Code == code).FirstOrDefault();
-                program.ApprovedQmslead = "Yes";
-                _qmsDB.QmsPrograms.Update(program);
-                await _qmsDB.SaveChangesAsync();
+                if(program.ApprovedAuditHead == "Yes" && program.Status == "IQAPass")
+                {
+                    program.Status = "Completed";
+                    _qmsDB.QmsPrograms.Update(program);
+                    await _qmsDB.SaveChangesAsync();
+                }
+                else
+                {
+                    program.ApprovedQmslead = "Yes";
+                    program.Status = "IQAPass";
+                    _qmsDB.QmsPrograms.Update(program);
+                    await _qmsDB.SaveChangesAsync();
+
+                   
+                    
+                }
                 return Ok();
             }
             catch (Exception ex)

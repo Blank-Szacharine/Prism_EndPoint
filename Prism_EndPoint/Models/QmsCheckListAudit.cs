@@ -21,6 +21,10 @@ public partial class QmsCheckListAudit
 
     public int ClauseId { get; set; }
 
+    public string? Remarks { get; set; }
+
+    public string? LookAt { get; set; }
+
     public virtual QmsPlanAudit AuditPlan { get; set; } = null!;
 
     public virtual QmsCheckList CheckList { get; set; } = null!;

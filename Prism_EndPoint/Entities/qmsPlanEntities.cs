@@ -14,11 +14,22 @@ namespace Prism_EndPoint.Entities
 
         public int? divId { get; set; }
 
+        public string? note { get; set; }
+        public string? noteBy { get; set; }
+
         public string? AuditObj { get; set; }
 
         public string? AuditMetho { get; set; }
+        public string? AuditStatus { get; set; }
 
         public string? Status { get; set; }
+
+        public DateTime? Created { get; set; }
+
+        public DateOnly? approveTL { get; set; }
+
+        public DateOnly? approveIQA { get; set; }
+        public DateOnly? approveQMS { get; set; }
 
         public string? Approve { get; set; }
 

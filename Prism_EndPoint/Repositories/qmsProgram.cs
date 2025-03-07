@@ -21,6 +21,8 @@ namespace Prism_EndPoint.Repositories
 
             qmsEntitesProgram program = null;
 
+            var viceHead = await _QmsContext.PrismCredentials.FirstOrDefaultAsync();
+
             if (fetchProgram != null)
             {
                 program = new qmsEntitesProgram
@@ -30,6 +32,7 @@ namespace Prism_EndPoint.Repositories
                     ProgramScope = fetchProgram.ProgramScope,
                     ProgramMethodology = fetchProgram.ProgramMethodology,
                     ProgramSecV = fetchProgram.ProgramSecV,
+                    QMSViceleader = viceHead.ViceQmsleader,
                     ProgramSecVI = fetchProgram.ProgramSecVi,
                     ProgramSecVII = fetchProgram.ProgramSecVii,
                     DateCreated = fetchProgram.DateCreated,
@@ -38,6 +41,7 @@ namespace Prism_EndPoint.Repositories
                     ApprovedQMSLEAD =fetchProgram.ApprovedQmslead,
                     ApprovedAuditHead = fetchProgram.ApprovedAuditHead,
                     code = fetchProgram.Code,
+                    Status = fetchProgram.Status,
                 };
             }
 

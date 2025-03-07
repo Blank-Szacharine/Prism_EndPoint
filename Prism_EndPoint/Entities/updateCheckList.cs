@@ -12,9 +12,11 @@
         {
             public int Id { get; set; }
             public string? Questions { get; set; }  // Mapping 'qa' from payload
+            public string? Lookat { get; set; }
             public string? Documentation { get; set; } // Mapping 'document' from payload
             public string? Evidence { get; set; }
             public string? Findings { get; set; }
+            public string? Remarks { get; set; }
         }
 
     }

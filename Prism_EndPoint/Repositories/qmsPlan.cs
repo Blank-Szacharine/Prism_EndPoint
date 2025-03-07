@@ -61,11 +61,11 @@ namespace Prism_EndPoint.Repositories
                 Id = e.Id,
                 Process = e.ProcessTitle,
                 Owner = e.DivisionProcesses.FirstOrDefault().ProcessOwnerId,
-                Status = _QmsContext.QmsPlans.Where(z => z.DivisionId == divisionIdInt).Where(x => x.ProgramId == code).FirstOrDefault()?.Status,
+                Status = _QmsContext.QmsPlans.Where(z => z.DivisionId == divisionIdInt).Where(x=>x.ProcessId == e.Id).Where(x => x.ProgramId == code).FirstOrDefault()?.Status,
             }).ToList();
 
 
-       
+
             return processTeam;
         }
 
@@ -79,12 +79,12 @@ namespace Prism_EndPoint.Repositories
                 .Include(x => x.DivisionProcesses)
                 .Include(x => x.QmssubProcesses)
                 .Include(x => x.QmsPlans
-                    .Where(p => p.ProcessId == code && p.ProgramId == progId) 
-                    .OrderBy(p => p.Id) 
+                    .Where(p => p.ProcessId == code && p.ProgramId == progId)
+                    .OrderBy(p => p.Id)
                     .Take(1)
                 )
                 .ThenInclude(y => y.QmsPlanAudits)
-                .ThenInclude(z =>z.QmsPlanAuditClauses)
+                .ThenInclude(z => z.QmsPlanAuditClauses)
                 .FirstOrDefaultAsync();
 
 
@@ -93,7 +93,7 @@ namespace Prism_EndPoint.Repositories
                                             .Where(x => x.DivisionId == divId)
                                             .Where(x => x.ProgramId == progId)
                                             .FirstOrDefaultAsync();
-            
+
             if (processPlan == null)
             {
                 var subProcesses = await _QmsContext.Qmsprocesses
@@ -157,18 +157,40 @@ namespace Prism_EndPoint.Repositories
 
             var planAudits = processPlan.QmsPlans.FirstOrDefault()?.QmsPlanAudits;
 
-     
+            var auditStatus = _QmsContext.QmsCheckLists
+                                   .Include(x => x.QmsAuditReports)
+                               .Where(x => x.AuditId == processPlan.QmsPlans.FirstOrDefault().Id)
+                                .FirstOrDefault()?.Id;
+
+            var Stats = "";
+            if (auditStatus == null)
+            {
+                Stats = "Pending";
+            }
+            else
+            {
+                Stats = "Audited";
+            }
+
             plan = new qmsPlanEntities
             {
                 Id = code,
                 ProcessTitle = processPlan.ProcessTitle,
-                checklist = _QmsContext.QmsCheckLists.Where(x=>x.AuditId == processPlan.QmsPlans.FirstOrDefault().Id).FirstOrDefault()?.Id,
+                checklist = _QmsContext.QmsCheckLists.Where(x => x.AuditId == processPlan.QmsPlans.FirstOrDefault().Id).FirstOrDefault()?.Id,
                 PlanId = processPlan.QmsPlans.FirstOrDefault()?.Id,
                 AuditObj = processPlan.QmsPlans.FirstOrDefault()?.AuditObj,
                 AuditMetho = processPlan.QmsPlans.FirstOrDefault()?.AuditMemo,
                 teamLead = teamlead?.AuditTeamNavigation?.TeamLeader,
                 divId = divId,
+                AuditStatus = Stats,
+                Created = processPlan.QmsPlans.FirstOrDefault()?.CreateAt,
+                approveTL = processPlan.QmsPlans.FirstOrDefault()?.ApprovedDateTl,
+                approveIQA = processPlan.QmsPlans.FirstOrDefault()?.ApprovedDateIqa,
+                approveQMS = processPlan.QmsPlans.FirstOrDefault()?.ApprovedDateQms,
+                note = processPlan.QmsPlans.FirstOrDefault()?.Notes,
+                noteBy = processPlan.QmsPlans.FirstOrDefault()?.NotesBy,
                 Approve = processPlan.QmsPlans.FirstOrDefault()?.Approve,
+
                 membersTeams = (await _QmsContext.FrequencyAudits
                                                   .Include(x => x.AuditTeamNavigation)
                                                   .ThenInclude(z => z.QmsteamMembers)
@@ -195,7 +217,7 @@ namespace Prism_EndPoint.Repositories
                     }).ToList() ?? new List<qmsPlanEntities.PlanAudit.auditClauses>(),
                 }).ToList(),
                 Status = processPlan.QmsPlans.FirstOrDefault()?.Status,
-                
+
             };
 
             return plan;
@@ -265,7 +287,7 @@ namespace Prism_EndPoint.Repositories
         public async Task updatePlanAudit(AuditEntry entry)
         {
             var auditPlan = await _QmsContext.QmsPlanAudits.Where(x => x.PlanId == entry.planId).Where(x => x.SubProcessId == entry.subprocId).FirstOrDefaultAsync();
-            
+
             if (auditPlan == null)
             {
                 try
@@ -290,15 +312,15 @@ namespace Prism_EndPoint.Repositories
 
                     };
                     _QmsContext.QmsPlanAudits.Add(newPlanAudit);
-                    await _QmsContext.SaveChangesAsync(); 
+                    await _QmsContext.SaveChangesAsync();
 
-                    
+
                     foreach (var clause in entry.auditClause)
                     {
                         var newAuditClause = new QmsPlanAuditClause
                         {
                             SubClause = clause.subSclauses,
-                            PlanAuditId = newPlanAudit.Id, 
+                            PlanAuditId = newPlanAudit.Id,
                         };
                         _QmsContext.QmsPlanAuditClauses.Add(newAuditClause);
                         await _QmsContext.SaveChangesAsync();
@@ -318,7 +340,7 @@ namespace Prism_EndPoint.Repositories
             auditPlan.TimeTo = entry.to;
             _QmsContext.QmsPlanAudits.Update(auditPlan);
             await _QmsContext.SaveChangesAsync();
-            var AuditClause = await _QmsContext.QmsPlanAuditClauses.Where( x => x.PlanAuditId == auditPlan.Id).ToListAsync();
+            var AuditClause = await _QmsContext.QmsPlanAuditClauses.Where(x => x.PlanAuditId == auditPlan.Id).ToListAsync();
             if (AuditClause.Any())
             {
                 _QmsContext.QmsPlanAuditClauses.RemoveRange(AuditClause);
@@ -335,7 +357,7 @@ namespace Prism_EndPoint.Repositories
                 await _QmsContext.SaveChangesAsync();
             }
 
-           
+
             return;
 
         }
@@ -347,26 +369,37 @@ namespace Prism_EndPoint.Repositories
             if (plan != null)
             {
                 string approved;
-                if(plan.Approve == "Pending")
+                string status;
+                if (plan.Approve == "Pending")
                 {
                     approved = "TeamLeadApproved";
+                    plan.Notes = null;
+                    plan.NotesBy = null;
+                    plan.ApprovedDateTl = DateOnly.FromDateTime(DateTime.Now);
+                    status = "Draft";
                 }
-                else if(plan.Approve == "TeamLeadApproved")
+                else if (plan.Approve == "TeamLeadApproved")
                 {
                     approved = "IQAheadApprove";
+                    plan.ApprovedDateIqa = DateOnly.FromDateTime(DateTime.Now);
+                    status = "Pending Review";
                 }
-                else if(plan.Approve =="IQAheadApprove")
+                else if (plan.Approve == "IQAheadApprove")
                 {
+                    plan.ApprovedDateQms = DateOnly.FromDateTime(DateTime.Now);
                     approved = "QMSheadApprove";
+                    status = "Approved";
                 }
                 else
                 {
                     approved = "Pending";
+                    status = "Draft";
                 }
                 try
                 {
                     plan.Approve = approved;
-                    plan.Status = "Completed";
+                    
+                    plan.Status = status;
                     _QmsContext.QmsPlans.Update(plan);
                     await _QmsContext.SaveChangesAsync();
                 }
@@ -375,6 +408,38 @@ namespace Prism_EndPoint.Repositories
                     throw new InvalidOperationException("Error updating employee in the database", ex);
                 }
             }
+        }
+
+        public async Task returnPlan(int planId, string Conclusion)
+        {
+
+            var plan = await _QmsContext.QmsPlans.Where(x => x.Id == planId).FirstOrDefaultAsync();
+
+            string notesBy;
+            if (plan.Approve == "TeamLeadApproved")
+            {
+
+                notesBy = "from IQA Head";
+            }
+            else {
+                notesBy = "from QMS Head";
+            }
+            try
+            {
+                plan.Approve = "Pending";
+                plan.Status = "Draft";
+               plan.NotesBy = notesBy;
+                plan.Notes = Conclusion;
+                _QmsContext.QmsPlans.Update(plan);
+                await _QmsContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error updating employee in the database", ex);
+            }
+
+
+
         }
 
 

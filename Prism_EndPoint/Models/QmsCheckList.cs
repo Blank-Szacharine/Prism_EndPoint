@@ -19,6 +19,10 @@ public partial class QmsCheckList
 
     public string? Status { get; set; }
 
+    public string? ReviewedBy { get; set; }
+
+    public DateOnly? ReviewedDate { get; set; }
+
     public virtual QmsPlan Audit { get; set; } = null!;
 
     public virtual ICollection<QmsAuditReport> QmsAuditReports { get; set; } = new List<QmsAuditReport>();

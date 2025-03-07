@@ -2,6 +2,7 @@
 using Prism_EndPoint.Entities;
 using Prism_EndPoint.Models;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Prism_EndPoint.Repositories
 {
@@ -47,10 +48,14 @@ namespace Prism_EndPoint.Repositories
                 AuditedBy = _QmsContext.Qmsteams.Where(x => x.Id == getCheck.QmsPlanAudits.FirstOrDefault().TeamId).FirstOrDefault().TeamLeader,
                 AuditedDate = firstCheckList.AuditedDate,
                 AcknowledgeBy = firstCheckList.AcknowledgeBy,
+                ReviewedDate = firstCheckList.ReviewedDate,
+                ReviewedBy = firstCheckList.ReviewedBy,
                 Status = firstCheckList.Status,
                 DivisionId = getCheck.DivisionId,
                 Owner = _QmsContext.DivisionProcesses.Where(x => x.ProcessId == getCheck.ProcessId).FirstOrDefault().ProcessOwnerId,
-
+                auditees = _QmsContext.QmsteamMembers.Where(x => x.TeamId == getCheck.QmsPlanAudits.FirstOrDefault().TeamId).Select(team => new getChecklist.Auditee{
+                    member = team.Member,
+                }).ToList(),
                 AcknowledgeDate = firstCheckList.AcknowledgeDate,
                 auditLists = getCheck.QmsPlanAudits.Select(audits => new getChecklist.auditList
                 {
@@ -70,9 +75,11 @@ namespace Prism_EndPoint.Repositories
                          : null,
                         AuditPlanId = list.AuditPlanId,
                         Questions = list.Questions,
+                        LookAt = list.LookAt,
                         Documentation = list.Documentation,
                         Evidence = list.Evidence,
                         Findings = list.Findings,
+                        Remarks = list.Remarks,
                         clause = list.ClauseId,
                         clauseTitle = list.ClauseId != null
                          ? _QmsContext.QmsSubClauses
@@ -108,9 +115,8 @@ namespace Prism_EndPoint.Repositories
             {
                 AuditId = planAudit.Id,
                 AuditedBy = _QmsContext.Qmsteams.Where(x => x.Id == planAudit.QmsPlanAudits.FirstOrDefault().TeamId).FirstOrDefault().TeamLeader,
-                AuditedDate = null,
-                AcknowledgeBy = _QmsContext.PrismCredentials.FirstOrDefault().AuditHead,
-                AcknowledgeDate = null,
+                AcknowledgeBy = _QmsContext.PrismCredentials.FirstOrDefault().Qmsleader,
+                ReviewedBy = _QmsContext.PrismCredentials.FirstOrDefault().AuditHead,
                 Status = "Drafted",
             };
             await _QmsContext.QmsCheckLists.AddAsync(checklist);
@@ -126,8 +132,10 @@ namespace Prism_EndPoint.Repositories
                         CheckListId = checklist.Id,
                         AuditPlanId = auditChecklist.Id,
                         Questions = null,
+                        LookAt = null,
                         Documentation = null,
                         Evidence = null,
+                        Remarks = null,
                         ClauseId = _QmsContext.QmsSubClauses.SingleOrDefault(x => x.Subclause == auditClauses.SubClause).Id
                     };
 
@@ -154,9 +162,11 @@ namespace Prism_EndPoint.Repositories
                     if (auditChecklist != null)
                     {
                         auditChecklist.Questions = item.Questions;
+                        auditChecklist.LookAt = item.Lookat;
                         auditChecklist.Documentation = item.Documentation;
                         auditChecklist.Evidence = item.Evidence;
                         auditChecklist.Findings = item.Findings;
+                        auditChecklist.Remarks = item.Remarks;
                         _QmsContext.QmsCheckListAudits.Update(auditChecklist);
                         await _QmsContext.SaveChangesAsync();
                     }
@@ -173,15 +183,22 @@ namespace Prism_EndPoint.Repositories
             {
                 if (checklist.Status == "Drafted")
                 {
-                    status = "AuditorFinalaize";
+                    status = "Pending Review";
                     checklist.Status = status;
                     checklist.AuditedDate = DateOnly.FromDateTime(DateTime.Today);
+                    _QmsContext.QmsCheckLists.Update(checklist);
+                    await _QmsContext.SaveChangesAsync();
+                }else if (checklist.Status == "Pending Review")
+                {
+                    status = "Pending Approval";
+                    checklist.Status = status;
+                    checklist.ReviewedDate = DateOnly.FromDateTime(DateTime.Today);
                     _QmsContext.QmsCheckLists.Update(checklist);
                     await _QmsContext.SaveChangesAsync();
                 }
                 else
                 {
-                    status = "Submitted";
+                    status = "Approved";
                     checklist.Status = status;
                     checklist.AcknowledgeDate = DateOnly.FromDateTime(DateTime.Today);
                     _QmsContext.QmsCheckLists.Update(checklist);
