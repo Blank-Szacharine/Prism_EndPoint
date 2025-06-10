@@ -2,6 +2,7 @@
 {
     public class ProcessEntities
     {
+        public int? Id { get; set; }
         public string? division { get; set; }
 
         public string owner { get; set; } = null!;

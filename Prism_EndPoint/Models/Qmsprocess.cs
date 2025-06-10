@@ -17,6 +17,8 @@ public partial class Qmsprocess
 
     public virtual ICollection<DivisionProcess> DivisionProcesses { get; set; } = new List<DivisionProcess>();
 
+    public virtual ICollection<FrequencyAudit> FrequencyAudits { get; set; } = new List<FrequencyAudit>();
+
     public virtual ICollection<QmsPlan> QmsPlans { get; set; } = new List<QmsPlan>();
 
     public virtual ICollection<QmssubProcess> QmssubProcesses { get; set; } = new List<QmssubProcess>();

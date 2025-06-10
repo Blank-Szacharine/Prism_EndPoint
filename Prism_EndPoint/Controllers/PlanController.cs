@@ -4,8 +4,10 @@ using Prism_EndPoint.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Prism_EndPoint.Entities;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 namespace Prism_EndPoint.Controllers
 {
+    [Authorize]
     [Route("api/plan/[controller]")]
     [ApiController]
     public class PlanController : Controller
@@ -38,12 +40,12 @@ namespace Prism_EndPoint.Controllers
         }
 
 
-        [HttpGet("statusPlan/{code},{division}", Name = "getPlanDivision")]
-        public async Task<IActionResult> getProcessDivision(int code, string division)
+        [HttpGet("statusPlan/{code},{division},{role},{empno},{programId}", Name = "getPlanDivision")]
+        public async Task<IActionResult> getProcessDivision(int code, string division, int role, string empno, string programId)
         {
             try
             {
-                var program = await _planrepository.getDivisionprocessPlan(division, code);
+                var program = await _planrepository.getDivisionprocessPlan(division, code , role , empno , programId);
                 return Ok(program);
             }
             catch (Exception ex)
@@ -59,6 +61,20 @@ namespace Prism_EndPoint.Controllers
             try
             {
                 var program = await _planrepository.getProcessPlan(code, divId, progId);
+                return Ok(program);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error adding employee to the database", ex);
+            }
+        }
+
+        [HttpGet("printplan/{divId},{progId}", Name = "printplan")]
+        public async Task<IActionResult> printplan(int divId, int progId)
+        {
+            try
+            {
+                var program = await _planrepository.PrintProcessPlanAsync(divId, progId);
                 return Ok(program);
             }
             catch (Exception ex)

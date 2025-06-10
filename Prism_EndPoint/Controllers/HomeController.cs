@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Prism_EndPoint.Entities;
@@ -7,6 +8,7 @@ using Prism_EndPoint.Repositories;
 
 namespace Prism_EndPoint.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class HomeController : ControllerBase
@@ -97,33 +99,52 @@ namespace Prism_EndPoint.Controllers
             }
         }
 
-        [HttpPut("updateMetho/{code},{metho}", Name = "UpdateProgramsMetho")]
-        public async Task<IActionResult> UpdateProgramsMetho(string code, string metho)
+        [HttpGet("auditHeadFinalize/{code}", Name = "auditHeadFinalize")]
+        public async Task<IActionResult> auditHeadFinalize(string code)
         {
 
             try
             {
-                await _repository.UpdateProgramMetho(code, metho);
+                var program = _qmsDB.QmsPrograms.Where(x => x.Code == code).FirstOrDefault();
+                program.ApprovedAuditHead = "Yes";
+                _qmsDB.QmsPrograms.Update(program);
+                await _qmsDB.SaveChangesAsync();
                 return Ok();
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Error adding employee to the database", ex);
+                throw new InvalidOperationException("Error adding process to the database", ex);
             }
         }
 
-        [HttpPut("updateSecV/{code},{secV}", Name = "UpdateProgramsSecV")]
-        public async Task<IActionResult> UpdateProgramsSecV(string code, string secV)
+        [HttpGet("qmsHeadFinalize/{code}", Name = "qmsHeadFinalize")]
+        public async Task<IActionResult> qmsHeadFinalize(string code)
         {
 
             try
             {
-                await _repository.UpdateProgramSecV(code, secV);
+                var program = _qmsDB.QmsPrograms.Where(x => x.Code == code).FirstOrDefault();
+                if (program.ApprovedAuditHead == "Yes" && program.Status == "IQAPass")
+                {
+                    program.Status = "Completed";
+                    _qmsDB.QmsPrograms.Update(program);
+                    await _qmsDB.SaveChangesAsync();
+                }
+                else
+                {
+                    program.ApprovedQmslead = "Yes";
+                    program.Status = "IQAPass";
+                    _qmsDB.QmsPrograms.Update(program);
+                    await _qmsDB.SaveChangesAsync();
+
+
+
+                }
                 return Ok();
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Error adding employee to the database", ex);
+                throw new InvalidOperationException("Error adding process to the database", ex);
             }
         }
 
@@ -202,6 +223,71 @@ namespace Prism_EndPoint.Controllers
             }
         }
 
+        [HttpGet("addnewTeammember/{teamId},{empNo}", Name = "addMember")]
+        public async Task<IActionResult> addMember(int teamId, string empNo)
+        {
+
+            try
+            {
+                var team = await _qmsDB.Qmsteams
+                      .Include(x => x.QmsteamMembers)
+                      .Where(x => x.Id == teamId).FirstOrDefaultAsync();
+
+
+                if (team != null)
+                {
+                    var newMember = new QmsteamMember
+                    {
+                        Member = empNo,
+                        TeamId = teamId
+                    };
+                    
+                    _qmsDB.QmsteamMembers.Add(newMember);
+                    await _qmsDB.SaveChangesAsync();
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error adding process to the database", ex);
+            }
+        }
+
+        [HttpDelete("deleteMember/{teamId},{empNo}", Name = "deleteMember")]
+        public async Task<IActionResult> deleteMember(int teamId, string empNo)
+        {
+
+            try
+            {
+                var team = await _qmsDB.Qmsteams
+                      .Include(x => x.QmsteamMembers)
+                      .Where(x => x.Id == teamId).FirstOrDefaultAsync();
+
+
+                if (team != null)
+                {
+                    var memberToRemove = team.QmsteamMembers
+                        .Where(x=>x.Member == empNo)
+                        .Where(x=>x.TeamId == teamId)
+                        .FirstOrDefault();
+
+                    if (memberToRemove != null)
+                    {
+                        team.QmsteamMembers.Remove(memberToRemove);
+                        await _qmsDB.SaveChangesAsync();
+                    }
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error adding process to the database", ex);
+            }
+        }
+
+
+
+
         [HttpGet("getteam", Name = "getteam")]
         public async Task<IActionResult> getTeam()
         {
@@ -276,54 +362,7 @@ namespace Prism_EndPoint.Controllers
             }
         }
 
-        [HttpGet("auditHeadFinalize/{code}", Name = "auditHeadFinalize")]
-        public async Task<IActionResult> auditHeadFinalize(string code)
-        {
-
-            try
-            {
-                var program = _qmsDB.QmsPrograms.Where(x =>x.Code == code).FirstOrDefault();
-                program.ApprovedAuditHead = "Yes";
-                _qmsDB.QmsPrograms.Update(program);
-                await _qmsDB.SaveChangesAsync();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Error adding process to the database", ex);
-            }
-        }
-
-        [HttpGet("qmsHeadFinalize/{code}", Name = "qmsHeadFinalize")]
-        public async Task<IActionResult> qmsHeadFinalize(string code)
-        {
-
-            try
-            {
-                var program = _qmsDB.QmsPrograms.Where(x => x.Code == code).FirstOrDefault();
-                if(program.ApprovedAuditHead == "Yes" && program.Status == "IQAPass")
-                {
-                    program.Status = "Completed";
-                    _qmsDB.QmsPrograms.Update(program);
-                    await _qmsDB.SaveChangesAsync();
-                }
-                else
-                {
-                    program.ApprovedQmslead = "Yes";
-                    program.Status = "IQAPass";
-                    _qmsDB.QmsPrograms.Update(program);
-                    await _qmsDB.SaveChangesAsync();
-
-                   
-                    
-                }
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Error adding process to the database", ex);
-            }
-        }
+       
 
 
 

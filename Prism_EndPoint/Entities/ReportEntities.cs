@@ -37,6 +37,8 @@
             public string? ClauseId { get; set; }
 
             public string? ClauseTitle { get; set; }
+
+            public string? Remarks { get; set; }
         }
 
     }

@@ -10,6 +10,8 @@
 
         public int? programId { get; set; } = null!;
 
+        public int? processId { get; set; }
+
         public List<FrequencyMonth> FrequencyMonths { get; set; } = null!;
         public class FrequencyMonth
         {

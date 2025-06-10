@@ -245,6 +245,7 @@ namespace Prism_EndPoint.Repositories
 
             List<ProcessEntities> process = Processes.Select(e => new ProcessEntities
             {
+                Id = e.Process.Id,
                 division = e.DivisionId,
                 owner = e.ProcessOwnerId,
                 title = e.Process.ProcessTitle,
@@ -325,7 +326,7 @@ namespace Prism_EndPoint.Repositories
                 foreach (var frequencis in frequency.ArrayInputs)
                 {
                     var existingFrequency = await _QmsContext.FrequencyAudits
-                        .FirstOrDefaultAsync(f => f.ProgramId == frequency.codeProgram && f.DivisionId == frequencis.divisionId);
+                        .FirstOrDefaultAsync(f => f.ProgramId == frequency.codeProgram && f.ProcessId == frequencis.processId);
 
                     if (existingFrequency != null)
                     {
@@ -358,6 +359,7 @@ namespace Prism_EndPoint.Repositories
                             AuditDate = DateOnly.FromDateTime(DateTime.Today),
                             AuditTeam = frequencis.AuditTeam,
                             ProgramId = frequency.codeProgram,
+                            ProcessId = frequencis.processId,
                             DivisionId = frequencis.divisionId,
                         };
                         _QmsContext.FrequencyAudits.Add(saveFrequency);
@@ -389,11 +391,13 @@ namespace Prism_EndPoint.Repositories
 
 
         }
+
         public async Task<IEnumerable<FrequencyEntities>> getFrequency(int code)
         {
             try
             {
                 var frequency = await _QmsContext.FrequencyAudits
+                    .Include(x=>x.Process)
                 .Include(x => x.FrequencyMonths)
                 .Where(x => x.ProgramId == code)
                 .ToListAsync();
@@ -401,11 +405,14 @@ namespace Prism_EndPoint.Repositories
 
                 List<FrequencyEntities> frequencies = frequency.Select(e => new FrequencyEntities
                 {
+                   
                     divisionId = e.DivisionId,
                     AuditTeam = e.AuditTeam,
                     programId = e.ProgramId,
+                    processId = e.Process?.Id,
                     FrequencyMonths = e.FrequencyMonths.Select(m => new FrequencyEntities.FrequencyMonth
                     {
+                        
                         month = m.MonthFrequency
                     }).ToList(),
 

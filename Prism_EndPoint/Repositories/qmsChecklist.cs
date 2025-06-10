@@ -212,6 +212,11 @@ namespace Prism_EndPoint.Repositories
 
         public async Task<ReportEntities> GetChecklistReport(int code)
         {
+            var getCheck = await _QmsContext.QmsPlans
+                .Include(x => x.QmsPlanAudits)
+                .Include(x => x.QmsCheckLists)
+                .Where(x => x.QmsCheckLists.Any(c => c.Id == code))
+                .FirstOrDefaultAsync();
 
             var reportList = await _QmsContext.QmsAuditReports.Where(x => x.ChecklistId == code).FirstOrDefaultAsync();
 
@@ -220,12 +225,18 @@ namespace Prism_EndPoint.Repositories
                                     .ThenInclude(z => z.QmsCheckLists)
                                 .Where(x => x.QmsPlans.Any(p => p.QmsCheckLists.Any(c => c.Id == code)))
                                 .FirstOrDefaultAsync();
+            var qmsplanAuditProc = _QmsContext.QmsPlans?.FirstOrDefault()?.ProcessId;
+            var membersAudit = _QmsContext.QmsteamMembers.Where(x => x.TeamId == getCheck.QmsPlanAudits.FirstOrDefault().TeamId).Select(team => new getChecklist.Auditee
+            {
+                member = team.Member,
+            }).ToList();
 
-            var membersAudit = await _QmsContext.FrequencyAudits
-                                        .Include(x => x.AuditTeamNavigation)
-                                            .ThenInclude(x => x.QmsteamMembers)
-                                        .Where(x => x.ProgramId == qmsProgram.Id)
-                                        .FirstOrDefaultAsync();
+
+
+
+
+
+
             var ownerProcess = await _QmsContext.Qmsprocesses
                                             .Include(x => x.DivisionProcesses)
                                             .Where(x => x.Id == qmsProgram.QmsPlans.FirstOrDefault().ProcessId)
@@ -265,10 +276,10 @@ namespace Prism_EndPoint.Repositories
                 ViceAuditorSigned = reportList.ViceAuditorSigned,
                 AuditeeSigned = reportList.AuditeeSigned,
                 Owner = ownerProcess.DivisionProcesses.FirstOrDefault()?.ProcessOwnerId,
-                Leader = membersAudit.AuditTeamNavigation.TeamLeader,
-                TeamMembers = membersAudit.AuditTeamNavigation.QmsteamMembers?.Select(member => new ReportEntities.Team
+                Leader = _QmsContext.Qmsteams.Where(x => x.Id == getCheck.QmsPlanAudits.FirstOrDefault().TeamId).FirstOrDefault().TeamLeader,
+                TeamMembers = membersAudit.Select(member => new ReportEntities.Team
                 {
-                    Members = member.Member
+                    Members = member.member
                 }).ToList(),
                 Results = _QmsContext.QmsCheckListAudits.Where(x => x.CheckListId == code).Select(result => new ReportEntities.result
                 {
@@ -278,6 +289,7 @@ namespace Prism_EndPoint.Repositories
                                 .Select(x => x.ClauseTitle ?? x.SubTitle)
                                 .FirstOrDefault(),
                     ClauseId = _QmsContext.QmsSubClauses.Where(x => x.Id == result.ClauseId).FirstOrDefault().Subclause,
+                    Remarks = result.Remarks
                 }).ToList(),
             };
 

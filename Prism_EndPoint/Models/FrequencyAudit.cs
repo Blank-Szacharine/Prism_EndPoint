@@ -15,9 +15,13 @@ public partial class FrequencyAudit
 
     public int? DivisionId { get; set; }
 
+    public int? ProcessId { get; set; }
+
     public virtual Qmsteam? AuditTeamNavigation { get; set; }
 
     public virtual ICollection<FrequencyMonth> FrequencyMonths { get; set; } = new List<FrequencyMonth>();
+
+    public virtual Qmsprocess? Process { get; set; }
 
     public virtual QmsProgram? Program { get; set; }
 

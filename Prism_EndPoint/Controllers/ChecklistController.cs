@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Prism_EndPoint.Entities;
 using Prism_EndPoint.Models;
 using Prism_EndPoint.Repositories;
 
 namespace Prism_EndPoint.Controllers
 {
+    [Authorize]
     [Route("api/plan/[controller]")]
     [ApiController]
     public class ChecklistController : Controller

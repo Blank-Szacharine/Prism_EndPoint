@@ -51,7 +51,7 @@ public partial class PrismDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=IMTS-1\\SQLEXPRESS;Database=prism_db;User Id=sa;Password=Nfrdi@2024!;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=10.0.224.16;Database=prism_db;User Id=sa;Password=NeuralCore@3;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,6 +80,10 @@ public partial class PrismDbContext : DbContext
             entity.HasOne(d => d.AuditTeamNavigation).WithMany(p => p.FrequencyAudits)
                 .HasForeignKey(d => d.AuditTeam)
                 .HasConstraintName("FK__Frequency__Audit__276EDEB3");
+
+            entity.HasOne(d => d.Process).WithMany(p => p.FrequencyAudits)
+                .HasForeignKey(d => d.ProcessId)
+                .HasConstraintName("FK_FrequencyAudit_QMSprocess");
 
             entity.HasOne(d => d.Program).WithMany(p => p.FrequencyAudits)
                 .HasForeignKey(d => d.ProgramId)
